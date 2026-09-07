@@ -2,61 +2,89 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow">
-    <title>Password</title>
+    <title>Authorisation</title></title>
+    <!-- Подключаем библиотеку для точного расчета SHA-256 хэша -->
+    <script src="https://cloudflare.com"></script>
     <style>
         body {
-            background-color: #000000;
-            margin: 0;
-            padding: 0;
+            background-color: #000;
+            color: #fff;
+            font-family: monospace;
             display: flex;
-            justify-content: center;
             align-items: center;
-            height: 100vh;
-            overflow: hidden;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
         }
-        .terminal-container {
-            width: 100%;
-            max-width: 400px;
-            padding: 20px;
+        .login-box {
+            border: 2px solid #fff; /* Белая рамка, как в ТЗ */
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background-color: #050505;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
         }
-        .input-box {
-            width: 100%;
-            background-color: #000000;
-            border: 2px solid #ffffff;
-            color: #ffffff;
-            padding: 12px 20px;
-            font-size: 20px;
-            font-family: "Courier New", monospace;
+        input {
+            background-color: #000;
+            border: 1px solid #fff;
+            color: #fff;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 16px;
             text-align: center;
-            letter-spacing: 4px;
             outline: none;
-            box-sizing: border-box;
+            width: 200px;
         }
-        .input-box:focus {
-            box-shadow: 0 0 10px #ffffff;
+        button {
+            background-color: #fff;
+            color: #000;
+            border: none;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #ccc;
         }
     </style>
-    <script src="https://cloudflare.com"></script>
 </head>
 <body>
 
-    <div class="terminal-container">
-        <input type="text" class="input-box" id="keyField" placeholder="..." maxlength="12" autocomplete="off">
+    <div class="login-box">
+        <input type="text" id="code-input" maxlength="8" placeholder="00000000" autocomplete="off">
+        <button onclick="verifyCode()">ВОЙТИ</button>
     </div>
 
     <script>
-        const _0x41f = document.getElementById('keyField');
-        const _0x92a = "ba9b7a13fa3be0995c52bc724cf6ebf0e6ff4be8fa75e7a9e0a0ee441113b29c";
+        // SHA-256 хэш от верного кода 53791602
+        const targetHash = "4b870db5df7ffda046b0a88b56f8f5336688b1464bb664c1f93f6bd5f543e33c";
 
-        _0x41f.addEventListener('input', () => {
-            const _0x3d1 = _0x41f.value.trim();
-            const _0x7f4 = CryptoJS.SHA256(_0x3d1).toString();
+        function verifyCode() {
+            const inputField = document.getElementById("code-input");
+            const inputValue = inputField.value.trim();
 
-            if (_0x7f4 === _0x92a) {
-                _0x41f.blur();
-                window.location.href = "some.html"; 
+            // Считаем SHA-256 от введенного пользователем текста
+            const inputHash = CryptoJS.SHA256(inputValue).toString();
+
+            if (inputHash === targetHash) {
+                // Если хэш совпал, плавно перекидываем на страницу с Некто
+                window.location.href = "some.html";
+            } else {
+                // Если код неверный — сбрасываем поле и слегка подсвечиваем ошибку
+                alert("ДОСТУП ЗАПРЕЩЕН");
+                inputField.value = "";
+                inputField.focus();
+            }
+        }
+
+        // Позволяем игроку отправлять код по нажатию клавиши Enter
+        document.getElementById("code-input").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                verifyCode();
             }
         });
     </script>
