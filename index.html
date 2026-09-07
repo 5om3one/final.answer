@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Terminal</title>
+    <style>
+        body {
+            background-color: #000000;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: "Courier New", monospace;
+        }
+
+        .terminal-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+
+        .input-box {
+            width: 100%;
+            background-color: #000000;
+            border: 2px solid #ffffff;
+            color: #ffffff;
+            padding: 12px 20px;
+            font-size: 20px;
+            font-family: "Courier New", monospace;
+            text-align: center;
+            letter-spacing: 4px;
+            outline: none;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        .input-box:focus {
+            box-shadow: 0 0 10px #ffffff;
+        }
+
+        .story-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000000;
+            z-index: 9999;
+            box-sizing: border-box;
+            padding: 40px;
+            color: #ffffff;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .dialogue-box {
+            max-width: 650px;
+            font-size: 18px;
+            line-height: 1.6;
+            text-align: justify;
+        }
+
+        .entity-white-eyes { color: #ffffff; }
+        .entity-second-voice { color: #ff3333; font-weight: bold; }
+    </style>
+    <script src="https://cloudflare.com"></script>
+</head>
+<body>
+
+    <div class="terminal-container" id="panel">
+        <input type="text" class="input-box" id="keyField" placeholder="..." maxlength="12" autocomplete="off">
+    </div>
+
+    <div class="story-overlay" id="scene">
+        <div class="dialogue-box" id="scriptText"></div>
+    </div>
+
+    <script>
+        const _0x41f = document.getElementById('keyField');
+        const _0x22b = document.getElementById('panel');
+        const _0x5ba = document.getElementById('scene');
+        const _0x1c4 = document.getElementById('scriptText');
+
+        const _0x92a = "ba9b7a13fa3be0995c52bc724cf6ebf0e6ff4be8fa75e7a9e0a0ee441113b29c";
+
+        _0x41f.addEventListener('input', () => {
+            const _0x3d1 = _0x41f.value.trim();
+            const _0x7f4 = CryptoJS.SHA256(_0x3d1).toString();
+
+            if (_0x7f4 === _0x92a) {
+                _0x41f.blur();
+                _0x22b.style.display = 'none';
+                _0x5ba.style.display = 'flex';
+                _0x4de();
+            }
+        });
+
+        function _0x4de() {
+            const lines = [
+                { text: "Вы можете подумать, что весь проделанный вами путь бессмыслен и в целом, так и есть, но подумайте, сколько эмоций вы получили, сколько завели новых друзей, разве оно того не стоит? Хоть вы и потратили время, в ожидании ответов, вы всё же никогда не забудете как решали эту загадку. И да... Как бы это не было грустно, но ваше путешествие...", class: "entity-white-eyes", delay: 60 },
+                { text: " ЕЩЁ НЕ ОКОНЧЕНО.", class: "entity-second-voice", delay: 120 }
+            ];
+
+            let lineIndex = 0;
+            let charIndex = 0;
+
+            function type() {
+                if (lineIndex < lines.length) {
+                    if (charIndex === 0) {
+                        const span = document.createElement('span');
+                        span.className = lines[lineIndex].class;
+                        _0x1c4.appendChild(span);
+                    }
+                    
+                    const currentSpan = _0x1c4.lastChild;
+                    currentSpan.innerHTML += lines[lineIndex].text.charAt(charIndex);
+                    charIndex++;
+
+                    if (charIndex < lines[lineIndex].text.length) {
+                        setTimeout(type, lines[lineIndex].delay);
+                    } else {
+                        lineIndex++;
+                        charIndex = 0;
+                        setTimeout(type, 1000);
+                    }
+                }
+            }
+            type();
+        }
+    </script>
+</body>
+</html>
+
