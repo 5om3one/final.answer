@@ -3,8 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Authorisation</title>
-    <!-- Подключаем библиотеку для точного расчета SHA-256 хэша -->
-    <script src="https://cloudflare.com"></script>
     <style>
         body {
             background-color: #000;
@@ -17,13 +15,12 @@
             margin: 0;
         }
         .login-box {
-            border: 2px solid #fff; /* Белая рамка, как в ТЗ */
+            border: 2px solid #fff; /* Белая рамка */
             padding: 30px;
             display: flex;
             flex-direction: column;
             gap: 15px;
             background-color: #050505;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
         }
         input {
             background-color: #000;
@@ -45,7 +42,6 @@
             font-size: 16px;
             cursor: pointer;
             font-weight: bold;
-            transition: background-color 0.2s;
         }
         button:hover {
             background-color: #ccc;
@@ -56,26 +52,21 @@
 
     <div class="login-box">
         <input type="text" id="code-input" maxlength="8" placeholder="00000000" autocomplete="off">
-        <button onclick="verifyCode()">ВОЙТИ</button>
+        <button onclick="verifyAndRedirect()">ВОЙТИ</button>
     </div>
 
     <script>
-        // SHA-256 хэш от верного кода 53791602
-        const targetHash = "4b870db5df7ffda046b0a88b56f8f5336688b1464bb664c1f93f6bd5f543e33c";
-
-        function verifyCode() {
+        function verifyAndRedirect() {
             const inputField = document.getElementById("code-input");
             const inputValue = inputField.value.trim();
 
-            // Считаем SHA-256 от введенного пользователем текста
-            const inputHash = CryptoJS.SHA256(inputValue).toString();
-
-            if (inputHash === targetHash) {
-                // Если хэш совпал, плавно перекидываем на страницу с Некто
-                window.location.href = "some.html";
+            // Прямая и точная проверка кода без сторонних библиотек
+            if (inputValue === "53791602") {
+                // Если код верный, мгновенно перекидываем на секретный сайт
+                window.location.href = "https://github.io";
             } else {
-                // Если код неверный — сбрасываем поле и слегка подсвечиваем ошибку
-                alert("ДОСТУП ЗАПРЕЩЕН");
+                // Если код неверный — выводим ошибку в стиле старых терминалов
+                alert("ОШИБКА ДОСТУПА: НЕВЕРНЫЙ КОД");
                 inputField.value = "";
                 inputField.focus();
             }
@@ -84,7 +75,7 @@
         // Позволяем игроку отправлять код по нажатию клавиши Enter
         document.getElementById("code-input").addEventListener("keypress", function(event) {
             if (event.key === "Enter") {
-                verifyCode();
+                verifyAndRedirect();
             }
         });
     </script>
