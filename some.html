@@ -1,1 +1,332 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Transmission</title>
+    <style>
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: "Courier New", monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        /* БЕЛЫЕ ГЛАЗА-ТОЧКИ */
+        .eyes-container {
+            display: flex;
+            gap: 80px;
+            margin-bottom: 50px;
+            height: 30px;
+            align-items: center;
+        }
+        .eye {
+            width: 25px;
+            height: 25px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            transition: transform 0.1s ease;
+        }
+        /* Анимация моргания */
+        @keyframes blink {
+            0%, 95%, 100% { transform: scaleY(1); }
+            97% { transform: scaleY(0.1); }
+        }
+        .eye-blink {
+            animation: blink 5s infinite;
+        }
+
+        /* ДИАЛОГОВАЯ ПАНЕЛЬ */
+        .dialogue-container {
+            max-width: 600px;
+            height: 80px;
+            text-align: center;
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            cursor: pointer;
+        }
+
+        /* СЕТКА БЛОКОВ QUESTIONS */
+        .blocks-grid {
+            display: none;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            max-width: 500px;
+            width: 100%;
+        }
+        @media(max-width: 500px) {
+            .blocks-grid { grid-template-columns: 1fr; }
+        }
+
+        .quest-block {
+            background-color: #333333; /* Серый по умолчанию */
+            border: 2px solid #555555;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s ease;
+        }
+        /* Стиль когда пароль введен верно */
+        .quest-block.unlocked {
+            background-color: #000000;
+            border-color: #ffffff;
+            cursor: pointer;
+        }
+        .quest-block.unlocked:hover {
+            box-shadow: 0 0 10px #ffffff;
+        }
+        .block-title {
+            font-size: 32px;
+            font-weight: bold;
+        }
+        .pass-input {
+            width: 80px;
+            background: #000;
+            border: 1px solid #555;
+            color: #fff;
+            text-align: center;
+            font-family: "Courier New", monospace;
+            padding: 3px;
+            font-size: 14px;
+        }
+        .quest-block.unlocked .pass-input {
+            display: none; /* Прячем инпут, если блок открыт */
+        }
+
+        /* ИНТЕРФЕЙС ПОДТВЕРЖДЕНИЯ ВЫБОРА */
+        .confirm-box {
+            display: none;
+            text-align: center;
+            font-size: 22px;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .confirm-btn-row {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+        }
+        .action-btn {
+            background: none;
+            border: 2px solid #ffffff;
+            color: #ffffff;
+            font-family: "Courier New", monospace;
+            font-size: 18px;
+            padding: 5px 20px;
+            cursor: pointer;
+        }
+        .action-btn:hover {
+            background: #ffffff;
+            color: #000000;
+        }
+    </style>
+    <!-- Библиотека криптографии для скрытия паролей -->
+    <script src="https://cloudflare.com"></script>
+</head>
+<body>
+
+    <!-- ГЛАЗА НЕКТО -->
+    <div class="eyes-container">
+        <div class="eye eye-blink"></div>
+        <div class="eye eye-blink"></div>
+    </div>
+
+    <!-- ТЕКСТ МАШИНКИ -->
+    <div class="dialogue-container" id="textTarget"></div>
+
+    <!-- БЛОКИ С ЗАГАДКАМИ -->
+    <div class="blocks-grid" id="gridBox">
+        <!-- Блок A -->
+        <div class="quest-block" id="b_A">
+            <div class="block-title">A</div>
+            <input type="text" class="pass-input" placeholder="..." oninput="checkBlockPass(this, 'A', '827ccb0eea8a706c4c34a16891f84e7b')" maxlength="8">
+        </div>
+        <!-- Блок B -->
+        <div class="quest-block" id="b_B">
+            <div class="block-title">B</div>
+            <input type="text" class="pass-input" placeholder="..." oninput="checkBlockPass(this, 'B', 'fce2b161df9660d5bfa780824b07fb8d')" maxlength="8">
+        </div>
+        <!-- Блок C -->
+        <div class="quest-block" id="b_C">
+            <div class="block-title">C</div>
+            <input type="text" class="pass-input" placeholder="..." oninput="checkBlockPass(this, 'C', '6870a4ef697f267923709b1fbf1051fc')" maxlength="8">
+        </div>
+        <!-- Блок D -->
+        <div class="quest-block" id="b_D">
+            <div class="block-title">D</div>
+            <input type="text" class="pass-input" placeholder="..." oninput="checkBlockPass(this, 'D', '013cca931cb027fa4db6f3f01c40beec')" maxlength="8">
+        </div>
+    </div>
+
+    <!-- ОКНО "ВЫ УВЕРЕНЫ?" -->
+    <div class="confirm-box" id="confirmInterface">
+        <div>Вы уверены?</div>
+        <div class="confirm-btn-row">
+            <button class="action-btn" onclick="confirmChoice(true)">Да</button>
+            <button class="action-btn" onclick="confirmChoice(false)">Нет</button>
+        </div>
+    </div>
+
+    <script>
+        const textTarget = document.getElementById('textTarget');
+        const gridBox = document.getElementById('gridBox');
+        const confirmInterface = document.getElementById('confirmInterface');
+
+        // Сценарий печатной машинки
+        const scriptLines = [
+            "Приветствую.",
+            "Вот мы и встретились лицом к лицу.",
+            "Я уже давно наблюдаю за вами.",
+            "И как вижу, вы жаждаете узнать ответы.",
+            "Я позволю вам узнать ответ...",
+            "но только на один вопрос."
+        ];
+
+        let currentLine = 0;
+        let charIndex = 0;
+        let selectedLetter = "";
+
+        // Хэши правильных статусов в localStorage
+        const saveState = {
+            dialogueDone: localStorage.getItem('arg_dial_done') === 'true',
+            unlockedBlocks: JSON.parse(localStorage.getItem('arg_blocks_unlocked')) || {A:false, B:false, C:false, D:false},
+            finalChoice: localStorage.getItem('arg_final_choice') || ""
+        };
+
+        window.onload = function() {
+            if (saveState.finalChoice) {
+                // Если выбор уже сделан ранее — сразу выводим финальный ответ Некто
+                showFinalAnswer(saveState.finalChoice);
+            } else if (saveState.dialogueDone) {
+                // Если диалог просмотрен — сразу открываем блок сеток
+                openQuestionGrid();
+            } else {
+                // Иначе запускаем печатную машинку
+                typeLine();
+                textTarget.addEventListener('click', nextLine);
+            }
+        };
+
+        // Логика печатной машинки
+        function typeLine() {
+            if (currentLine < scriptLines.length) {
+                if (charIndex < scriptLines[currentLine].length) {
+                    textTarget.innerHTML += scriptLines[currentLine].charAt(charIndex);
+                    charIndex++;
+                    setTimeout(typeLine, 50);
+                } else {
+                    textTarget.innerHTML += "<br><span style='font-size:12px; color:#666;'>[Кликните для продолжения]</span>";
+                }
+            }
+        }
+
+        function nextLine() {
+            if (charIndex < scriptLines[currentLine].length) return; // Блокировка клика во время анимации букв
+            currentLine++;
+            charIndex = 0;
+            textTarget.innerHTML = "";
+            
+            if (currentLine < scriptLines.length) {
+                typeLine();
+            } else {
+                localStorage.setItem('arg_dial_done', 'true');
+                openQuestionGrid();
+            }
+        }
+
+        // Переключение на сетку вопросов
+        function openQuestionGrid() {
+            textTarget.style.display = 'none';
+            gridBox.style.display = 'grid';
+            
+            // Восстанавливаем разблокированные ранее блоки
+            for (let letter in saveState.unlockedBlocks) {
+                if (saveState.unlockedBlocks[letter]) {
+                    setBlockAsUnlocked(letter);
+                }
+            }
+        }
+
+        // Проверка паролей (используется MD5 хэш для легкости кода)
+        function checkBlockPass(inputElement, letter, correctHash) {
+            const val = inputElement.value.trim();
+            const hashed = CryptoJS.MD5(val).toString();
+
+            if (hashed === correctHash) {
+                saveState.unlockedBlocks[letter] = true;
+                localStorage.setItem('arg_blocks_unlocked', JSON.stringify(saveState.unlockedBlocks));
+                setBlockAsUnlocked(letter);
+            }
+        }
+
+        function setBlockAsUnlocked(letter) {
+            const block = document.getElementById('b_' + letter);
+            block.classList.add('unlocked');
+            block.onclick = () => selectBlock(letter);
+            const input = block.querySelector('.pass-input');
+            if (input) input.style.display = 'none';
+        }
+
+        // Выбор конкретного блока
+        function selectBlock(letter) {
+            selectedLetter = letter;
+            gridBox.style.display = 'none';
+            confirmInterface.style.display = 'flex';
+        }
+
+        // Кнопки Да/Нет
+        function confirmChoice(isConfirmed) {
+            if (isConfirmed) {
+                confirmInterface.style.display = 'none';
+                localStorage.setItem('arg_final_choice', selectedLetter);
+                showFinalAnswer(selectedLetter);
+            } else {
+                confirmInterface.style.display = 'none';
+                gridBox.style.display = 'grid';
+                selectedLetter = "";
+            }
+        }
+
+        // Вывод ответов в зависимости от выбранной буквы
+        function showFinalAnswer(letter) {
+            textTarget.style.display = 'block';
+            textTarget.innerHTML = "";
+            gridBox.style.display = 'none';
+            confirmInterface.style.display = 'none';
+
+            let finalResponse = "";
+            
+            if (letter === 'A') {
+                finalResponse = "[Некто]: Вы выбрали ответ A. В шуме действительно скрывается структура, но помните, что не всякий звук исходит от живых...";
+            } else if (letter === 'B') {
+                finalResponse = "[Некто]: Вы выбрали ответ B. Ирен — лишь сосуд, запертый в цикле огня. Вы встретите её отголоски в следующей симуляции.";
+            } else if (letter === 'C') {
+                finalResponse = "[Некто]: Вы выбрали ответ C. Я тот, кто строил эти стены до того, как они сгорели. Я наблюдатель вашей реальности.";
+            } else if (letter === 'D') {
+                finalResponse = "[Некто]: Ответы на все вопросы надо заслужить. Вы можете подумать, что весь проделанный вами путь бессмыслен и в целом, так и есть, но подумайте, сколько эмоций вы получили, сколько завели новых друзей, ради этого разве оно того не стоит? Хоть вы и потратили время, в ожидании ответов, вы всё же никогда не забудете как решали эту загадку. И да... Как бы это не было грустно, но ваше путешествие...";
+                
+                setTimeout(() => {
+                    const secondVoice = document.createElement('div');
+                    secondVoice.style.color = '#ff3333';
+                    secondVoice.style.fontWeight = 'bold';
+                    secondVoice.style.marginTop = '20px';
+                    secondVoice.innerHTML = "[ДРУГОЙ ГОЛОС]: ЕЩЁ НЕ ОКОНЧЕНО.";
+                    document.body.appendChild(secondVoice);
+                }, 4000);
+            }
+
+            textTarget.innerHTML = finalResponse;
+        }
 
