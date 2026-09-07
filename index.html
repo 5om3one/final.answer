@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Authorisation</title>
+    <title>Authorization</title>
     <style>
         body {
             background-color: #000;
@@ -15,7 +15,7 @@
             margin: 0;
         }
         .login-box {
-            border: 2px solid #fff; /* Белая рамка */
+            border: 2px solid #fff;
             padding: 30px;
             display: flex;
             flex-direction: column;
@@ -56,23 +56,29 @@
     </div>
 
     <script>
-        function verifyAndRedirect() {
+        function decodeText(encoded) {
+            const binary = atob(encoded);
+            const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+            return new TextDecoder("utf-8").decode(bytes);
+        }
+
+        async function sha256(value) {
+            const data = new TextEncoder().encode(value);
+            const hash = await crypto.subtle.digest("SHA-256", data);
+            return Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, "0")).join("");
+        }
+
+        async function verifyAndRedirect() {
             const inputField = document.getElementById("code-input");
             const inputValue = inputField.value.trim();
-
-            // Прямая и точная проверка кода без сторонних библиотек
-            if (inputValue === "53791602") {
-                // Если код верный, мгновенно перекидываем на секретный сайт
-                window.location.href = "https://5om3one.github.io/hello/";
+            if (await sha256(inputValue) === "b4d3a4bb70735f3f9e50204d80295ec240b60c4de71bbc1a375babac00b47f07") {
+                window.location.href = decodeText("aHR0cHM6Ly81b20zb25lLmdpdGh1Yi5pby9oZWxsby8=");
             } else {
-                // Если код неверный — выводим ошибку в стиле старых терминалов
-                alert("ОШИБКА ДОСТУПА: НЕВЕРНЫЙ КОД");
+                alert("ОШИБКА");
                 inputField.value = "";
                 inputField.focus();
             }
         }
-
-        // Позволяем игроку отправлять код по нажатию клавиши Enter
         document.getElementById("code-input").addEventListener("keypress", function(event) {
             if (event.key === "Enter") {
                 verifyAndRedirect();
